@@ -1,0 +1,1475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#070707" />
+    <title>Praise Him More | Live Gospel Radio</title>
+    <meta
+      name="description"
+      content="Listen to Praise Him More radio and watch livestreams and videos from the official YouTube channel."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #070707;
+        --charcoal: #171717;
+        --soft-white: #f7f5f8;
+        --muted: #b8b4ba;
+        --magenta: #e52bcb;
+        --blue: #1678f2;
+        --lime: #c7d10d;
+        --gold: #d6b631;
+        --coral: #d94a5c;
+        --line: rgb(247 245 248 / 16%);
+        --font-display: "Bebas Neue", Impact, sans-serif;
+        --font-body: "Manrope", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        background: var(--ink);
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--soft-white);
+        background:
+          radial-gradient(circle at 12% 4%, rgb(199 209 13 / 8%), transparent 24rem),
+          radial-gradient(circle at 86% 10%, rgb(22 120 242 / 10%), transparent 28rem),
+          var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.5;
+      }
+
+      button,
+      input,
+      a {
+        font: inherit;
+      }
+
+      button,
+      a {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 40px));
+        margin-inline: auto;
+      }
+
+      .site-header {
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: 5;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 88px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .wordmark {
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-size: clamp(1.65rem, 3vw, 2.15rem);
+        letter-spacing: 0.055em;
+        line-height: 1;
+      }
+
+      .wordmark span:nth-child(2) {
+        color: var(--magenta);
+      }
+
+      .wordmark span:nth-child(3) {
+        color: var(--lime);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: color 180ms ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus-visible {
+        color: var(--soft-white);
+      }
+
+      .hero {
+        position: relative;
+        min-height: 790px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        isolation: isolate;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        width: min(74vw, 900px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgb(229 43 203 / 10%),
+          rgb(22 120 242 / 5%) 38%,
+          transparent 68%
+        );
+        filter: blur(10px);
+        z-index: -2;
+      }
+
+      #waveCanvas {
+        position: absolute;
+        inset: 88px 0 0;
+        width: 100%;
+        height: calc(100% - 88px);
+        z-index: -1;
+      }
+
+      .player-stage {
+        width: min(760px, calc(100% - 32px));
+        margin-top: 72px;
+        display: grid;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .display-title {
+        margin: 0 0 20px;
+        font-family: var(--font-display);
+        font-size: clamp(4.5rem, 10vw, 8.5rem);
+        font-weight: 400;
+        letter-spacing: 0.025em;
+        line-height: 0.82;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+
+      .display-title span {
+        display: inline-block;
+      }
+
+      .display-title .him {
+        color: var(--magenta);
+      }
+
+      .display-title .more {
+        color: var(--lime);
+      }
+
+      .intro {
+        max-width: 600px;
+        margin: 0 0 30px;
+        color: var(--muted);
+        font-size: clamp(0.98rem, 2vw, 1.1rem);
+      }
+
+      .play-button {
+        position: relative;
+        width: 180px;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        color: var(--soft-white);
+        cursor: pointer;
+        background:
+          linear-gradient(var(--charcoal), var(--charcoal)) padding-box,
+          conic-gradient(
+              from 25deg,
+              var(--blue),
+              var(--magenta),
+              var(--coral),
+              var(--gold),
+              var(--lime),
+              var(--blue)
+            )
+            border-box;
+        border: 3px solid transparent;
+        box-shadow:
+          0 0 0 10px rgb(255 255 255 / 2%),
+          0 24px 70px rgb(0 0 0 / 60%),
+          0 0 40px rgb(229 43 203 / 15%);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .play-button::after {
+        content: "";
+        position: absolute;
+        inset: -15px;
+        border: 1px solid rgb(247 245 248 / 12%);
+        border-radius: inherit;
+      }
+
+      .play-button:hover {
+        transform: scale(1.035);
+        box-shadow:
+          0 0 0 12px rgb(255 255 255 / 3%),
+          0 28px 80px rgb(0 0 0 / 68%),
+          0 0 56px rgb(229 43 203 / 25%);
+      }
+
+      .play-button:focus-visible,
+      .video-tab:focus-visible,
+      .live-link:focus-visible {
+        outline: 3px solid var(--soft-white);
+        outline-offset: 5px;
+      }
+
+      .play-button.is-loading {
+        animation: breathe 900ms ease-in-out infinite alternate;
+      }
+
+      .play-icon,
+      .pause-icon {
+        width: 42px;
+        height: 42px;
+        fill: currentColor;
+      }
+
+      .pause-icon {
+        display: none;
+      }
+
+      .play-button.is-playing .play-icon {
+        display: none;
+      }
+
+      .play-button.is-playing .pause-icon {
+        display: block;
+      }
+
+      .play-label {
+        display: block;
+        margin-top: 34px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .station-status {
+        min-height: 24px;
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .station-status[data-state="playing"] {
+        color: var(--lime);
+      }
+
+      .station-status[data-state="error"] {
+        color: #ff8d9b;
+      }
+
+      .fallback-link {
+        display: none;
+        margin-top: 12px;
+        color: var(--soft-white);
+        font-size: 0.84rem;
+        font-weight: 700;
+        text-underline-offset: 4px;
+      }
+
+      .fallback-link.is-visible {
+        display: inline-block;
+      }
+
+      .volume-row {
+        width: min(340px, 80vw);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+        color: var(--muted);
+      }
+
+      .volume-row svg {
+        width: 19px;
+        height: 19px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+      }
+
+      .fade-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .fade-button {
+        min-height: 40px;
+        padding: 0 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        background: rgb(23 23 23 / 80%);
+        cursor: pointer;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        transition:
+          color 180ms ease,
+          border-color 180ms ease,
+          transform 180ms ease;
+      }
+
+      .fade-button:hover,
+      .fade-button:focus-visible {
+        color: var(--soft-white);
+        border-color: var(--magenta);
+        transform: translateY(-1px);
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 4px;
+        appearance: none;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--magenta) 0 70%,
+          rgb(247 245 248 / 22%) 70%
+        );
+        cursor: pointer;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 16px;
+        height: 16px;
+        appearance: none;
+        border: 3px solid var(--ink);
+        border-radius: 50%;
+        background: var(--soft-white);
+        box-shadow: 0 0 0 1px var(--soft-white);
+      }
+
+      .media-section {
+        padding: clamp(72px, 10vw, 130px) 0;
+        background:
+          linear-gradient(90deg, rgb(199 209 13 / 4%), transparent 28%),
+          linear-gradient(270deg, rgb(22 120 242 / 5%), transparent 34%),
+          var(--ink);
+      }
+
+      .submission-callout {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 34px;
+        margin-bottom: clamp(74px, 10vw, 124px);
+        padding: clamp(28px, 5vw, 52px) 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .submission-callout h2 {
+        margin: 0 0 8px;
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 6vw, 5.6rem);
+        font-weight: 400;
+        letter-spacing: 0.035em;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .submission-callout p {
+        max-width: 680px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .submit-music-button,
+      .form-submit {
+        flex: 0 0 auto;
+        min-height: 54px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 999px;
+        color: var(--ink);
+        background: var(--lime);
+        cursor: pointer;
+        font-weight: 800;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+        box-shadow: 0 14px 42px rgb(199 209 13 / 14%);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .submit-music-button:hover,
+      .submit-music-button:focus-visible,
+      .form-submit:hover,
+      .form-submit:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 52px rgb(199 209 13 / 24%);
+        outline: 3px solid var(--soft-white);
+        outline-offset: 4px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 30px;
+        margin-bottom: 34px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(3.3rem, 7vw, 6.4rem);
+        font-weight: 400;
+        letter-spacing: 0.03em;
+        line-height: 0.9;
+        text-transform: uppercase;
+      }
+
+      .section-head p {
+        max-width: 430px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .media-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .video-tabs {
+        display: flex;
+        gap: 8px;
+      }
+
+      .video-tab {
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .video-tab[aria-selected="true"] {
+        color: var(--ink);
+        border-color: var(--lime);
+        background: var(--lime);
+      }
+
+      .live-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 999px;
+        color: var(--soft-white);
+        background: var(--coral);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .live-link::before {
+        content: "";
+        width: 8px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: var(--soft-white);
+        box-shadow: 0 0 0 4px rgb(247 245 248 / 18%);
+      }
+
+      .video-frame {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        border: 1px solid rgb(247 245 248 / 22%);
+        border-radius: 4px;
+        background: var(--charcoal);
+        box-shadow: 0 36px 90px rgb(0 0 0 / 46%);
+      }
+
+      .video-frame::before {
+        content: "";
+        position: absolute;
+        inset: -1px auto -1px -1px;
+        width: 4px;
+        z-index: 1;
+        background: linear-gradient(var(--lime), var(--gold), var(--magenta), var(--blue));
+        pointer-events: none;
+      }
+
+      .video-frame iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      .seek-note {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .seek-note span {
+        width: 34px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--magenta), var(--blue));
+      }
+
+      .role-note {
+        display: grid;
+        grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.7fr);
+        gap: clamp(28px, 6vw, 80px);
+        margin-top: clamp(70px, 10vw, 120px);
+        padding-top: clamp(34px, 5vw, 54px);
+        border-top: 1px solid var(--line);
+      }
+
+      .role-note h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.8rem, 5vw, 4.8rem);
+        font-weight: 400;
+        letter-spacing: 0.035em;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .role-copy {
+        color: var(--muted);
+      }
+
+      .role-copy p {
+        margin: 0 0 16px;
+      }
+
+      .role-copy strong {
+        color: var(--soft-white);
+      }
+
+      .submission-dialog {
+        width: min(720px, calc(100% - 28px));
+        max-height: calc(100vh - 40px);
+        padding: 0;
+        overflow: auto;
+        border: 1px solid rgb(247 245 248 / 24%);
+        border-radius: 18px;
+        color: var(--soft-white);
+        background: #101010;
+        box-shadow: 0 36px 120px rgb(0 0 0 / 80%);
+      }
+
+      .submission-dialog::backdrop {
+        background: rgb(0 0 0 / 82%);
+        backdrop-filter: blur(8px);
+      }
+
+      .dialog-inner {
+        padding: clamp(24px, 5vw, 48px);
+      }
+
+      .dialog-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .dialog-head h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 8vw, 5.2rem);
+        font-weight: 400;
+        letter-spacing: 0.035em;
+        line-height: 0.9;
+        text-transform: uppercase;
+      }
+
+      .dialog-close {
+        width: 42px;
+        aspect-ratio: 1;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        color: var(--soft-white);
+        background: transparent;
+        cursor: pointer;
+        font-size: 1.35rem;
+      }
+
+      .direct-email {
+        display: inline-flex;
+        margin: 24px 0;
+        color: var(--lime);
+        font-weight: 800;
+        text-underline-offset: 5px;
+      }
+
+      .submission-form {
+        display: grid;
+        gap: 18px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .form-field {
+        display: grid;
+        gap: 7px;
+      }
+
+      .form-field > span,
+      .delivery-options legend {
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .form-field input,
+      .form-field textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--soft-white);
+        background: #191919;
+        padding: 13px 14px;
+      }
+
+      .form-field textarea {
+        min-height: 104px;
+        resize: vertical;
+      }
+
+      .form-field input:focus,
+      .form-field textarea:focus {
+        outline: 2px solid var(--blue);
+        outline-offset: 2px;
+      }
+
+      .delivery-options {
+        margin: 0;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .delivery-options legend {
+        padding: 0 7px;
+      }
+
+      .delivery-choice {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 20px;
+        cursor: pointer;
+      }
+
+      .file-note,
+      .legal-note,
+      .form-status {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .legal-note {
+        margin: 0;
+        padding: 14px 16px;
+        border-left: 3px solid var(--gold);
+        background: rgb(214 182 49 / 7%);
+      }
+
+      .rights-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .rights-check input {
+        margin-top: 4px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .footer {
+        padding: 44px 0 56px;
+        border-top: 1px solid var(--line);
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+      }
+
+      .footer a {
+        color: var(--soft-white);
+        text-underline-offset: 5px;
+      }
+
+      .footer small {
+        color: var(--muted);
+      }
+
+      @keyframes breathe {
+        to {
+          transform: scale(1.035);
+          box-shadow: 0 0 64px rgb(22 120 242 / 35%);
+        }
+      }
+
+      @media (max-width: 760px) {
+        .shell {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .nav {
+          min-height: 72px;
+        }
+
+        .nav-links a:first-child {
+          display: none;
+        }
+
+        .hero {
+          min-height: 720px;
+        }
+
+        #waveCanvas {
+          inset: 72px 0 0;
+          height: calc(100% - 72px);
+        }
+
+        .player-stage {
+          margin-top: 56px;
+        }
+
+        .display-title {
+          font-size: clamp(4.4rem, 22vw, 7rem);
+        }
+
+        .play-button {
+          width: 150px;
+        }
+
+        .submission-callout,
+        .section-head,
+        .footer-inner {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .submit-music-button {
+          width: 100%;
+        }
+
+        .role-note,
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .media-controls {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .video-tabs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .live-link {
+          justify-content: center;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        .play-button,
+        .nav-links a {
+          transition: none;
+        }
+
+        .play-button.is-loading {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav shell" aria-label="Main navigation">
+        <a class="wordmark" href="#radio" aria-label="Praise Him More home">
+          <span>Praise </span><span>Him </span><span>More</span>
+        </a>
+        <div class="nav-links">
+          <a href="#radio">Radio</a>
+          <a
+            href="https://www.youtube.com/channel/UCmRXtIEIHqHUkGFxixH35qQ"
+            target="_blank"
+            rel="noreferrer"
+          >YouTube</a>
+          <a href="mailto:praisehimmore@yahoo.com">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="radio" aria-labelledby="pageTitle">
+        <canvas id="waveCanvas" aria-hidden="true"></canvas>
+        <div class="player-stage">
+          <h1 class="display-title" id="pageTitle">
+            <span>Praise</span> <span class="him">Him</span> <span class="more">More</span>
+          </h1>
+          <p class="intro">
+            Welcome to Praise Him More. We hope you enjoy our site, and we look
+            forward to you visiting us again.
+          </p>
+
+          <button
+            class="play-button"
+            id="radioToggle"
+            type="button"
+            aria-label="Play Praise Him More radio"
+            aria-pressed="false"
+          >
+            <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 4.9v14.2c0 .9 1 1.4 1.8.9l10.5-7.1a1.1 1.1 0 0 0 0-1.8L8.8 4C8 3.5 7 4 7 4.9Z" />
+            </svg>
+            <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6.5 5.2c0-.7.5-1.2 1.2-1.2h2.1c.7 0 1.2.5 1.2 1.2v13.6c0 .7-.5 1.2-1.2 1.2H7.7c-.7 0-1.2-.5-1.2-1.2V5.2Zm6.5 0c0-.7.5-1.2 1.2-1.2h2.1c.7 0 1.2.5 1.2 1.2v13.6c0 .7-.5 1.2-1.2 1.2h-2.1c-.7 0-1.2-.5-1.2-1.2V5.2Z" />
+            </svg>
+          </button>
+
+          <span class="play-label" id="playLabel">Play Radio</span>
+          <p class="station-status" id="stationStatus" role="status">
+            Tap play to listen live
+          </p>
+          <a
+            class="fallback-link"
+            id="fallbackLink"
+            href="https://waynetworktv.net/praisehimmore/?et_fb=1&pageSpeed=off"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open the official radio player
+          </a>
+
+          <div class="volume-row">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 9v6h4l5 4V5L9 9H5Z" />
+              <path d="M17 9.2a4 4 0 0 1 0 5.6M19.5 6.8a7.3 7.3 0 0 1 0 10.4" />
+            </svg>
+            <label for="volume" hidden>Radio volume</label>
+            <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" />
+          </div>
+          <div class="fade-controls" aria-label="Radio fade controls">
+            <button class="fade-button" id="fadeInButton" type="button">Fade In</button>
+            <button class="fade-button" id="fadeOutButton" type="button">Fade Out</button>
+          </div>
+          <audio id="radioAudio" preload="none"></audio>
+        </div>
+      </section>
+
+      <section class="media-section" id="watch" aria-labelledby="watchTitle">
+        <div class="shell">
+          <section class="submission-callout" aria-labelledby="submitMusicTitle">
+            <div>
+              <h2 id="submitMusicTitle">Submit Your Music</h2>
+              <p>
+                Gospel artists may submit unreleased music for consideration,
+                feedback, or promotion on Praise Him More.
+              </p>
+            </div>
+            <button class="submit-music-button" id="openSubmission" type="button">
+              Submit Your Music
+            </button>
+          </section>
+
+          <div class="section-head">
+            <h2 id="watchTitle">Live &amp;<br />On Demand</h2>
+            <p>
+              Watch a current livestream or explore Praise Him More videos. Use
+              the YouTube timeline to scrub, replay, and jump through past content.
+            </p>
+          </div>
+
+          <div class="media-controls">
+            <div class="video-tabs" role="tablist" aria-label="YouTube content">
+              <button
+                class="video-tab"
+                id="videosTab"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="youtubeFrame"
+                data-mode="videos"
+              >
+                Videos
+              </button>
+              <button
+                class="video-tab"
+                id="liveTab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="youtubeFrame"
+                data-mode="live"
+              >
+                Livestream
+              </button>
+            </div>
+            <a
+              class="live-link"
+              href="https://www.youtube.com/channel/UCmRXtIEIHqHUkGFxixH35qQ/live"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Watch Live on YouTube
+            </a>
+          </div>
+
+          <div class="video-frame">
+            <iframe
+              id="youtubeFrame"
+              src="https://www.youtube-nocookie.com/embed/videoseries?list=UUmRXtIEIHqHUkGFxixH35qQ&controls=1&rel=0"
+              title="Praise Him More Videos"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <p class="seek-note"><span></span>Drag the YouTube progress bar to seek through on-demand videos.</p>
+
+          <section class="role-note" aria-labelledby="ourRoleTitle">
+            <h2 id="ourRoleTitle">Our Role</h2>
+            <div class="role-copy">
+              <p>
+                <strong>Praise Him More is a not-for-profit gospel radio station</strong>
+                sharing gospel artists whose music praises the name of GOD.
+                Praise Him More is a promotional and feedback platform, not a
+                record label, publisher, distributor, rights administrator, or
+                representative of submitting artists.
+              </p>
+              <p>
+                Artists retain their copyrights and ownership. A submission does
+                not transfer rights, guarantee feedback, promotion, broadcast,
+                placement, or acceptance. Submitters must own or control all
+                necessary rights to the music and media they provide.
+              </p>
+              <p>
+                Praise Him More reserves full discretion to review, decline,
+                remove, or deny any submission for any reason, including content
+                that does not align with the station's gospel mission.
+              </p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner shell">
+        <a href="mailto:praisehimmore@yahoo.com">praisehimmore@yahoo.com</a>
+        <small>Copyright &copy; 2024 Praise Him More. All Rights Reserved.</small>
+      </div>
+    </footer>
+
+    <dialog class="submission-dialog" id="submissionDialog" aria-labelledby="dialogTitle">
+      <div class="dialog-inner">
+        <div class="dialog-head">
+          <div>
+            <h2 id="dialogTitle">Submit Your Music</h2>
+          </div>
+          <button class="dialog-close" id="closeSubmission" type="button" aria-label="Close submission form">
+            &times;
+          </button>
+        </div>
+
+        <a
+          class="direct-email"
+          href="mailto:praisehimmore@yahoo.com?subject=Gospel%20Music%20Submission"
+        >
+          Email praisehimmore@yahoo.com directly
+        </a>
+
+        <form class="submission-form" id="musicSubmissionForm">
+          <div class="field-grid">
+            <label class="form-field">
+              <span>Artist or group name</span>
+              <input name="artistName" type="text" autocomplete="organization" required />
+            </label>
+            <label class="form-field">
+              <span>Contact email</span>
+              <input name="contactEmail" type="email" autocomplete="email" required />
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span>Song title</span>
+            <input name="songTitle" type="text" required />
+          </label>
+
+          <fieldset class="delivery-options">
+            <legend>How are you submitting?</legend>
+            <label class="delivery-choice">
+              <input type="radio" name="delivery" value="link" checked />
+              Music link
+            </label>
+            <label class="delivery-choice">
+              <input type="radio" name="delivery" value="files" />
+              Media files
+            </label>
+          </fieldset>
+
+          <label class="form-field" id="linkSubmissionFields">
+            <span>Private or public listening link</span>
+            <input
+              id="musicLink"
+              name="musicLink"
+              type="url"
+              placeholder="https://"
+              required
+            />
+          </label>
+
+          <label class="form-field" id="fileSubmissionFields" hidden>
+            <span>Select audio or video files</span>
+            <input id="musicFiles" name="musicFiles" type="file" accept="audio/*,video/*" multiple />
+            <small class="file-note">
+              Your files stay on your device. The form opens your email app, where
+              you must attach the selected files before sending.
+            </small>
+          </label>
+
+          <label class="form-field">
+            <span>Message or promotion context</span>
+            <textarea
+              name="message"
+              placeholder="Tell Praise Him More about the song, release plans, and the feedback or promotion you are seeking."
+            ></textarea>
+          </label>
+
+          <p class="legal-note">
+            Submission does not transfer copyright or guarantee airplay,
+            feedback, promotion, or acceptance. Praise Him More may deny any
+            submission at its sole discretion.
+          </p>
+
+          <label class="rights-check">
+            <input name="rightsConfirmed" type="checkbox" required />
+            <span>
+              I confirm that I own or control the necessary rights to submit this
+              music and authorize Praise Him More to review it for possible
+              feedback, promotion, or broadcast consideration.
+            </span>
+          </label>
+
+          <button class="form-submit" type="submit">Prepare Submission Email</button>
+          <p class="form-status" id="formStatus" role="status"></p>
+        </form>
+      </div>
+    </dialog>
+
+    <script>
+      const IS_GITHUB_PAGES = location.hostname.endsWith(".github.io");
+      const CHANNEL_ID = "UCmRXtIEIHqHUkGFxixH35qQ";
+      const UPLOADS_PLAYLIST = "UUmRXtIEIHqHUkGFxixH35qQ";
+      const radioToggle = document.getElementById("radioToggle");
+      const radioAudio = document.getElementById("radioAudio");
+      const playLabel = document.getElementById("playLabel");
+      const stationStatus = document.getElementById("stationStatus");
+      const fallbackLink = document.getElementById("fallbackLink");
+      const volume = document.getElementById("volume");
+      const fadeInButton = document.getElementById("fadeInButton");
+      const fadeOutButton = document.getElementById("fadeOutButton");
+      const canvas = document.getElementById("waveCanvas");
+      const ctx = canvas.getContext("2d");
+      const youtubeFrame = document.getElementById("youtubeFrame");
+      const videoTabs = [...document.querySelectorAll(".video-tab")];
+      const submissionDialog = document.getElementById("submissionDialog");
+      const openSubmission = document.getElementById("openSubmission");
+      const closeSubmission = document.getElementById("closeSubmission");
+      const musicSubmissionForm = document.getElementById("musicSubmissionForm");
+      const linkSubmissionFields = document.getElementById("linkSubmissionFields");
+      const fileSubmissionFields = document.getElementById("fileSubmissionFields");
+      const musicLink = document.getElementById("musicLink");
+      const musicFiles = document.getElementById("musicFiles");
+      const formStatus = document.getElementById("formStatus");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      let audioContext;
+      let analyser;
+      let sourceNode;
+      let frequencyData;
+      let radioReady = false;
+      let radioFailed = false;
+      let phase = 0;
+      let fadeFrame;
+      let preferredVolume = Number(volume.value);
+
+      function setRadioState(state, message) {
+        radioToggle.classList.toggle("is-playing", state === "playing");
+        radioToggle.classList.toggle("is-loading", state === "loading");
+        radioToggle.setAttribute("aria-pressed", String(state === "playing"));
+        radioToggle.setAttribute(
+          "aria-label",
+          state === "playing" ? "Pause Praise Him More radio" : "Play Praise Him More radio",
+        );
+        playLabel.textContent = state === "playing" ? "Pause Radio" : "Play Radio";
+        stationStatus.dataset.state = state;
+        stationStatus.textContent = message;
+        fallbackLink.classList.toggle("is-visible", state === "error");
+      }
+
+      function connectAnalyser() {
+        if (audioContext) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.82;
+        frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        sourceNode = audioContext.createMediaElementSource(radioAudio);
+        sourceNode.connect(analyser);
+        analyser.connect(audioContext.destination);
+      }
+
+      async function playRadio() {
+        if (IS_GITHUB_PAGES) {
+          window.open(
+            "https://waynetworktv.net/praisehimmore/?et_fb=1&pageSpeed=off",
+            "_blank",
+            "noopener,noreferrer",
+          );
+          setRadioState(
+            "error",
+            "GitHub Pages test mode opened the official radio player.",
+          );
+          return;
+        }
+        setRadioState("loading", "Connecting to the live station...");
+        radioFailed = false;
+        fallbackLink.classList.remove("is-visible");
+
+        try {
+          connectAnalyser();
+          if (audioContext?.state === "suspended") await audioContext.resume();
+          if (!radioReady) {
+            radioAudio.src = "/radio-stream";
+            radioReady = true;
+          }
+
+          const timeout = new Promise((_, reject) => {
+            window.setTimeout(() => reject(new Error("Station timed out")), 9000);
+          });
+
+          await Promise.race([radioAudio.play(), timeout]);
+          setRadioState("playing", "Praise Him More is live");
+        } catch (error) {
+          radioFailed = true;
+          radioAudio.pause();
+          radioAudio.removeAttribute("src");
+          radioAudio.load();
+          radioReady = false;
+          setRadioState(
+            "error",
+            "The station provider blocked inline playback. Use the official player.",
+          );
+        }
+      }
+
+      function paintVolume(value) {
+        const safeValue = Math.max(0, Math.min(1, value));
+        radioAudio.volume = safeValue;
+        volume.value = String(safeValue);
+        const fill = Math.round(safeValue * 100);
+        volume.style.background = `linear-gradient(90deg, var(--magenta) 0 ${fill}%, rgb(247 245 248 / 22%) ${fill}%)`;
+      }
+
+      function fadeVolume(target, duration, pauseAtEnd = false) {
+        cancelAnimationFrame(fadeFrame);
+        const startVolume = radioAudio.volume;
+        const startedAt = performance.now();
+        const finalVolume = Math.max(0, Math.min(1, target));
+
+        function step(now) {
+          const progress = Math.min(1, (now - startedAt) / duration);
+          const eased = progress * progress * (3 - 2 * progress);
+          paintVolume(startVolume + (finalVolume - startVolume) * eased);
+
+          if (progress < 1) {
+            fadeFrame = requestAnimationFrame(step);
+            return;
+          }
+
+          if (pauseAtEnd) {
+            radioAudio.pause();
+            setRadioState("paused", "Radio faded out");
+          }
+        }
+
+        fadeFrame = requestAnimationFrame(step);
+      }
+
+      async function fadeInRadio() {
+        cancelAnimationFrame(fadeFrame);
+        const targetVolume = Math.max(0.1, preferredVolume || 0.7);
+        if (radioAudio.paused) {
+          paintVolume(0);
+          await playRadio();
+        }
+        if (!radioAudio.paused) {
+          fadeVolume(targetVolume, reducedMotion.matches ? 250 : 1800);
+        }
+      }
+
+      function fadeOutRadio() {
+        if (radioAudio.paused) {
+          setRadioState("paused", "Radio is already paused");
+          return;
+        }
+        fadeVolume(0, reducedMotion.matches ? 250 : 1800, true);
+      }
+
+      radioToggle.addEventListener("click", () => {
+        if (!radioAudio.paused) fadeOutRadio();
+        else fadeInRadio();
+      });
+
+      fadeInButton.addEventListener("click", fadeInRadio);
+      fadeOutButton.addEventListener("click", fadeOutRadio);
+
+      radioAudio.addEventListener("error", () => {
+        if (!radioFailed) {
+          radioFailed = true;
+          setRadioState(
+            "error",
+            "The station provider blocked inline playback. Use the official player.",
+          );
+        }
+      });
+
+      radioAudio.addEventListener("waiting", () => {
+        if (!radioAudio.paused) setRadioState("loading", "Buffering the live station...");
+      });
+
+      radioAudio.addEventListener("playing", () => {
+        setRadioState("playing", "Praise Him More is live");
+      });
+
+      volume.addEventListener("input", () => {
+        cancelAnimationFrame(fadeFrame);
+        const nextVolume = Number(volume.value);
+        if (nextVolume > 0.02) preferredVolume = nextVolume;
+        paintVolume(nextVolume);
+      });
+      paintVolume(preferredVolume);
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function signalAt(position, time) {
+        if (analyser && !radioAudio.paused) {
+          analyser.getByteFrequencyData(frequencyData);
+          const index = Math.min(
+            frequencyData.length - 1,
+            Math.floor(position * frequencyData.length),
+          );
+          const nearby = frequencyData[Math.max(0, index - 3)] || 0;
+          return Math.max(frequencyData[index], nearby) / 255;
+        }
+        return 0.12 + Math.abs(Math.sin(position * 15 + time * 0.0015)) * 0.08;
+      }
+
+      function drawWave() {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const center = height * 0.58;
+        const points = Math.max(120, Math.floor(width / 5));
+        phase += reducedMotion.matches ? 0 : 0.014;
+        ctx.clearRect(0, 0, width, height);
+
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        gradient.addColorStop(0, "#c7d10d");
+        gradient.addColorStop(0.22, "#d6b631");
+        gradient.addColorStop(0.48, "#e52bcb");
+        gradient.addColorStop(0.72, "#7d48e8");
+        gradient.addColorStop(1, "#1678f2");
+
+        const renderLine = (blur, alpha, lineWidth) => {
+          ctx.save();
+          ctx.beginPath();
+          ctx.strokeStyle = gradient;
+          ctx.globalAlpha = alpha;
+          ctx.lineWidth = lineWidth;
+          ctx.shadowColor = "#e52bcb";
+          ctx.shadowBlur = blur;
+
+          for (let i = 0; i <= points; i += 1) {
+            const x = (i / points) * width;
+            const position = i / points;
+            const envelope = Math.sin(position * Math.PI) * 0.78 + 0.12;
+            const signal = signalAt(position, performance.now());
+            const amplitude = (26 + signal * 112) * envelope;
+            const y =
+              center +
+              Math.sin(position * 26 + phase) * amplitude * 0.55 +
+              Math.sin(position * 61 - phase * 1.7) * amplitude * 0.18;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        };
+
+        renderLine(28, 0.24, 12);
+        renderLine(12, 0.62, 3.2);
+        renderLine(0, 0.96, 1.25);
+        requestAnimationFrame(drawWave);
+      }
+
+      videoTabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const mode = tab.dataset.mode;
+          videoTabs.forEach((item) => {
+            item.setAttribute("aria-selected", String(item === tab));
+          });
+          youtubeFrame.src =
+            mode === "live"
+              ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0`
+              : `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
+          youtubeFrame.title =
+            mode === "live" ? "Praise Him More YouTube livestream" : "Praise Him More Videos";
+        });
+      });
+
+      openSubmission.addEventListener("click", () => submissionDialog.showModal());
+      closeSubmission.addEventListener("click", () => submissionDialog.close());
+      submissionDialog.addEventListener("click", (event) => {
+        if (event.target === submissionDialog) submissionDialog.close();
+      });
+
+      document.querySelectorAll('input[name="delivery"]').forEach((choice) => {
+        choice.addEventListener("change", () => {
+          const usesLink =
+            document.querySelector('input[name="delivery"]:checked').value === "link";
+          linkSubmissionFields.hidden = !usesLink;
+          fileSubmissionFields.hidden = usesLink;
+          musicLink.required = usesLink;
+          formStatus.textContent = "";
+        });
+      });
+
+      musicSubmissionForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = new FormData(musicSubmissionForm);
+        const delivery = data.get("delivery");
+
+        if (delivery === "files" && musicFiles.files.length === 0) {
+          formStatus.textContent = "Select at least one audio or video file.";
+          musicFiles.focus();
+          return;
+        }
+
+        const fileNames = [...musicFiles.files].map((file) => file.name).join(", ");
+        const subject = `Gospel Music Submission - ${data.get("artistName")} - ${data.get("songTitle")}`;
+        const body = [
+          `Artist or group: ${data.get("artistName")}`,
+          `Contact email: ${data.get("contactEmail")}`,
+          `Song title: ${data.get("songTitle")}`,
+          `Submission method: ${delivery === "link" ? "Music link" : "Media files"}`,
+          delivery === "link"
+            ? `Listening link: ${data.get("musicLink")}`
+            : `Files to attach: ${fileNames}`,
+          "",
+          "Message:",
+          data.get("message") || "No additional message provided.",
+          "",
+          "Rights confirmation: I own or control the necessary rights and authorize Praise Him More to review this submission for possible feedback, promotion, or broadcast consideration.",
+        ].join("\n");
+
+        formStatus.textContent =
+          delivery === "files"
+            ? "Your email app is opening. Attach the selected files before sending."
+            : "Your email app is opening with the submission details.";
+        window.location.href = `mailto:praisehimmore@yahoo.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      });
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      drawWave();
+    </script>
+  </body>
+</html>
