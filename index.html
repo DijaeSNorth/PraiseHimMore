@@ -553,6 +553,36 @@
         border: 0;
       }
 
+      .video-unavailable {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        gap: 14px;
+        padding: 24px;
+        text-align: center;
+        background: linear-gradient(180deg, rgb(22 120 242 / 10%), rgb(13 11 20 / 92%));
+        color: var(--soft-white);
+      }
+
+      .video-unavailable a {
+        justify-self: center;
+      }
+
+      .video-unavailable h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 1.45rem;
+        text-wrap: balance;
+        letter-spacing: 0.05em;
+      }
+
+      .video-unavailable p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 560px;
+      }
+
       .seek-note {
         display: flex;
         align-items: center;
@@ -1003,8 +1033,29 @@
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowfullscreen
             ></iframe>
+            <div class="video-unavailable" id="videoUnavailable" hidden>
+              <h3>This video cannot be embedded here</h3>
+              <p>
+                Some owners disable embedding on external websites. Open this content
+                directly in YouTube when needed.
+              </p>
+              <a id="youtubeFallbackLink" class="live-link" href="#" target="_blank" rel="noreferrer">
+                Open in YouTube
+              </a>
+            </div>
           </div>
-          <p class="seek-note"><span></span>Drag the YouTube progress bar to seek through on-demand videos.</p>
+          <p class="seek-note">
+            <span></span>Drag the YouTube progress bar to seek through on-demand videos.
+          </p>
+          <a
+            class="live-link"
+            id="youtubeOpenInApp"
+            href="https://www.youtube.com/playlist?list=UUmRXtIEIHqHUkGFxixH35qQ"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open this view directly on YouTube
+          </a>
 
           <section class="role-note" aria-labelledby="ourRoleTitle">
             <h2 id="ourRoleTitle">Our Role</h2>
@@ -1144,6 +1195,8 @@
       const FADE_TRANSITION_MS = 3500;
       const CHANNEL_ID = "UCmRXtIEIHqHUkGFxixH35qQ";
       const UPLOADS_PLAYLIST = "UUmRXtIEIHqHUkGFxixH35qQ";
+      const YOUTUBE_LIVE_FALLBACK_URL = `https://www.youtube.com/channel/${CHANNEL_ID}/live`;
+      const YOUTUBE_VIDEOS_FALLBACK_URL = `https://www.youtube.com/playlist?list=${UPLOADS_PLAYLIST}`;
       const radioToggle = document.getElementById("radioToggle");
       const radioAudio = document.getElementById("radioAudio");
       const playLabel = document.getElementById("playLabel");
@@ -1155,6 +1208,9 @@
       const canvas = document.getElementById("waveCanvas");
       const ctx = canvas.getContext("2d");
       const youtubeFrame = document.getElementById("youtubeFrame");
+      const youtubeUnavailable = document.getElementById("videoUnavailable");
+      const youtubeFallbackLink = document.getElementById("youtubeFallbackLink");
+      const youtubeOpenInApp = document.getElementById("youtubeOpenInApp");
       const videoTabs = [...document.querySelectorAll(".video-tab")];
       const submissionDialog = document.getElementById("submissionDialog");
       const openSubmission = document.getElementById("openSubmission");
@@ -1213,6 +1269,23 @@
         stationStatus.dataset.state = state;
         stationStatus.textContent = message;
         fallbackLink.classList.toggle("is-visible", state === "error");
+      }
+
+      function setYoutubeFallback(mode) {
+        const targetUrl =
+          mode === "live" ? YOUTUBE_LIVE_FALLBACK_URL : YOUTUBE_VIDEOS_FALLBACK_URL;
+        youtubeFallbackLink.href = targetUrl;
+        youtubeOpenInApp.href = targetUrl;
+      }
+
+      function showYoutubeFallback() {
+        youtubeUnavailable.hidden = false;
+        youtubeFrame.hidden = true;
+      }
+
+      function hideYoutubeFallback() {
+        youtubeUnavailable.hidden = true;
+        youtubeFrame.hidden = false;
       }
 
       function connectAnalyser() {
@@ -1369,6 +1442,9 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
+      youtubeFrame.addEventListener("error", showYoutubeFallback);
+      youtubeFrame.addEventListener("load", hideYoutubeFallback);
+
       function signalAt(position, time) {
         if (analyser && !radioAudio.paused) {
           analyser.getByteFrequencyData(frequencyData);
@@ -1435,14 +1511,17 @@
           videoTabs.forEach((item) => {
             item.setAttribute("aria-selected", String(item === tab));
           });
+          hideYoutubeFallback();
           youtubeFrame.src =
             mode === "live"
               ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0`
               : `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
           youtubeFrame.title =
             mode === "live" ? "Praise Him More YouTube livestream" : "Praise Him More Videos";
+          setYoutubeFallback(mode);
         });
       });
+      setYoutubeFallback("videos");
 
       openSubmission.addEventListener("click", () => submissionDialog.showModal());
       closeSubmission.addEventListener("click", () => submissionDialog.close());
