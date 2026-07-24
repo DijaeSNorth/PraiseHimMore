@@ -1141,6 +1141,7 @@
       const OFFICIAL_RADIO_PAGE = "https://waynetworktv.net/praisehimmore/?et_fb=1&pageSpeed=off";
       const DEFAULT_GH_RADIO_STREAM_URL = "https://salttnetwork.com/proxy/l8dyv?mp=/stream";
       const RADIO_STREAM_TIMEOUT_MS = 9000;
+      const FADE_TRANSITION_MS = 3500;
       const CHANNEL_ID = "UCmRXtIEIHqHUkGFxixH35qQ";
       const UPLOADS_PLAYLIST = "UUmRXtIEIHqHUkGFxixH35qQ";
       const radioToggle = document.getElementById("radioToggle");
@@ -1314,7 +1315,7 @@
           await playRadio();
         }
         if (!radioAudio.paused) {
-          fadeVolume(targetVolume, reducedMotion.matches ? 250 : 1800);
+          fadeVolume(targetVolume, FADE_TRANSITION_MS);
         }
       }
 
@@ -1323,7 +1324,7 @@
           setRadioState("paused", "Radio is already paused");
           return;
         }
-        fadeVolume(0, reducedMotion.matches ? 250 : 1800, true);
+        fadeVolume(0, FADE_TRANSITION_MS, true);
       }
 
       radioToggle.addEventListener("click", () => {
