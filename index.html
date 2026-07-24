@@ -580,16 +580,6 @@
         display: none;
       }
 
-      .youtube-probe-frame {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0.01;
-        pointer-events: none;
-        border: 0;
-        left: -9999px;
-      }
-
       .video-unavailable {
         position: absolute;
         inset: 0;
@@ -1095,24 +1085,16 @@
               </div>
             </div>
             <div class="playlist-browser-frame" id="youtubePlaylistContainer" aria-label="YouTube playlist browser">
-              <iframe
-                id="youtubePlaylistFrame"
-                src="https://www.youtube.com/playlist?list=UUmRXtIEIHqHUkGFxixH35qQ"
-                title="Praise Him More playlist browser"
-                loading="lazy"
-                allowfullscreen
-              ></iframe>
-            </div>
-          </div>
           <iframe
-            id="youtubeLiveProbeFrame"
-            class="youtube-probe-frame"
-            title="YouTube live probe"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            id="youtubePlaylistFrame"
+            src="https://www.youtube.com/playlist?list=UUmRXtIEIHqHUkGFxixH35qQ"
+            title="Praise Him More playlist browser"
+            loading="lazy"
             allowfullscreen
-            aria-hidden="true"
           ></iframe>
-          <p class="seek-note">
+        </div>
+      </div>
+      <p class="seek-note">
             <span></span>Drag the YouTube progress bar to seek through on-demand videos.
           </p>
           <a
@@ -1268,8 +1250,12 @@
       const YOUTUBE_VIDEOS_EMBED_URL =
         `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
       const YOUTUBE_LIVE_EMBED_URL =
-        `https://www.youtube.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0&enablejsapi=1`;
-      const YOUTUBE_LIVE_PROBE_URL = `${YOUTUBE_LIVE_EMBED_URL}&autoplay=0&modestbranding=1&playsinline=1`;
+        `https://www.youtube.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0&autoplay=0&enablejsapi=1`;
+      const YOUTUBE_LIVE_EMBED_ID_BASE = "https://www.youtube.com/embed/";
+      const YOUTUBE_LIVE_STATUS_ENDPOINT = `/youtube-live-status.php?channel=${CHANNEL_ID}`;
+      const LIVE_POLL_INTERVAL_MS = 120000;
+      const LIVE_STATUS_TIMEOUT_MS = 10000;
+      const YOUTUBE_LIVE_WATCH_URL_BASE = "https://www.youtube.com/watch?v=";
       const radioToggle = document.getElementById("radioToggle");
       const radioAudio = document.getElementById("radioAudio");
       const playLabel = document.getElementById("playLabel");
@@ -1283,7 +1269,6 @@
       const youtubeFrame = document.getElementById("youtubeFrame");
       const youtubePlaylistFrame = document.getElementById("youtubePlaylistFrame");
       const youtubePlaylistContainer = document.getElementById("youtubePlaylistContainer");
-      const youtubeLiveProbeFrame = document.getElementById("youtubeLiveProbeFrame");
       const youtubeUnavailable = document.getElementById("videoUnavailable");
       const youtubeFallbackLink = document.getElementById("youtubeFallbackLink");
       const youtubeOpenInApp = document.getElementById("youtubeOpenInApp");
@@ -1335,7 +1320,9 @@
       let preferredVolume = Number(volume.value);
       let activeYoutubeMode = "videos";
       let isLiveFeedAvailable = false;
-      let liveProbeTimeout = null;
+      let liveVideoId = "";
+      let liveWatchUrl = YOUTUBE_CHANNEL_URL;
+      let lastLivePayload = null;
 
       function setRadioState(state, message) {
         radioToggle.classList.toggle("is-playing", state === "playing");
@@ -1352,16 +1339,21 @@
       }
 
       function setYoutubeFallback(mode) {
-        youtubeFallbackLink.href = YOUTUBE_CHANNEL_URL;
-        youtubeOpenInApp.href = YOUTUBE_CHANNEL_URL;
+        const fallbackUrl = mode === "live" ? liveWatchUrl : YOUTUBE_CHANNEL_URL;
         const fallbackTitle = mode === "live" ? "Open YouTube live page" : "Open YouTube channel";
+        youtubeFallbackLink.href = fallbackUrl;
+        youtubeOpenInApp.href = fallbackUrl;
         youtubeOpenInApp.textContent = fallbackTitle;
       }
 
       function setYoutubeMode(mode) {
         const isLive = mode === "live";
         if (isLive && !isLiveFeedAvailable) return;
-        youtubeFrame.src = isLive ? YOUTUBE_LIVE_EMBED_URL : YOUTUBE_VIDEOS_EMBED_URL;
+        youtubeFrame.src = isLive
+          ? (liveVideoId
+              ? `${YOUTUBE_LIVE_EMBED_ID_BASE}${liveVideoId}?controls=1&rel=0&autoplay=0&enablejsapi=1`
+              : YOUTUBE_LIVE_EMBED_URL)
+          : YOUTUBE_VIDEOS_EMBED_URL;
         youtubeFrame.title = isLive
           ? "Praise Him More YouTube livestream"
           : "Praise Him More YouTube videos";
@@ -1390,48 +1382,60 @@
         }
       }
 
-      function handleYoutubeMessage(event) {
-        const allowedOrigins = [
-          "https://www.youtube.com",
-          "https://www.youtube-nocookie.com",
-          "http://www.youtube.com",
-          "http://www.youtube-nocookie.com",
-        ];
-        if (!allowedOrigins.includes(event.origin)) return;
+      async function checkLiveFeedAvailability() {
+        try {
+          const timeout = new Promise((_, reject) =>
+            window.setTimeout(() => reject(new Error("Live status request timed out")), LIVE_STATUS_TIMEOUT_MS),
+          );
+          const response = await Promise.race([
+            fetch(YOUTUBE_LIVE_STATUS_ENDPOINT, {
+              cache: "no-store",
+              headers: {
+                Accept: "application/json",
+              },
+              mode: "same-origin",
+            }),
+            timeout,
+          ]);
 
-        let payload = event.data;
-        if (typeof payload === "string") {
-          try {
-            payload = JSON.parse(payload);
-          } catch {
-            return;
+          if (!response.ok) {
+            throw new Error(`Live status request failed: ${response.status}`);
           }
+
+          const payload = await response.json();
+          const detectedLive = Boolean(payload?.live);
+          if (detectedLive && payload.videoId) {
+            liveVideoId = payload.videoId;
+            liveWatchUrl = `${YOUTUBE_LIVE_WATCH_URL_BASE}${liveVideoId}`;
+          } else {
+            liveVideoId = "";
+            liveWatchUrl = YOUTUBE_CHANNEL_URL;
+          }
+          lastLivePayload = payload;
+          setYoutubeFallback(detectedLive ? "live" : "videos");
+          setLiveTabVisibility(detectedLive);
+          keepTabSelectionSafe();
+          return;
+        } catch (_error) {
         }
 
-        if (!payload || typeof payload !== "object") return;
-        if (payload.id !== "youtubeLiveProbeFrame") return;
-
-        if (payload.event === "onError") {
-          setLiveTabVisibility(false);
+        if (lastLivePayload) {
+          const knownLive = Boolean(lastLivePayload.live);
+          setYoutubeFallback(knownLive ? "live" : "videos");
+          setLiveTabVisibility(knownLive);
           keepTabSelectionSafe();
           return;
         }
 
-        if (payload.event === "onReady") {
-          setLiveTabVisibility(true);
-          keepTabSelectionSafe();
-        }
+        probeWithEmbedFallback();
       }
 
-      function probeLiveFeedAvailability() {
-        if (!youtubeLiveProbeFrame) return;
-        youtubeLiveProbeFrame.src = YOUTUBE_LIVE_PROBE_URL;
-        if (liveProbeTimeout) clearTimeout(liveProbeTimeout);
-        liveProbeTimeout = window.setTimeout(() => {
-          if (!isLiveFeedAvailable) {
-            setLiveTabVisibility(false);
-          }
-        }, 7000);
+      function probeWithEmbedFallback() {
+        setYoutubeFallback("videos");
+        setLiveTabVisibility(false);
+        if (activeYoutubeMode === "live") {
+          setYoutubeMode("videos");
+        }
       }
 
       function showYoutubeFallback() {
@@ -1604,15 +1608,6 @@
       youtubeFrame.addEventListener("load", hideYoutubeFallback);
       youtubePlaylistFrame.addEventListener("error", showYoutubeFallback);
       youtubePlaylistFrame.addEventListener("load", hideYoutubeFallback);
-      youtubeLiveProbeFrame.addEventListener("load", () => {
-        setLiveTabVisibility(true);
-        if (liveProbeTimeout) {
-          window.clearTimeout(liveProbeTimeout);
-          liveProbeTimeout = null;
-        }
-      });
-      youtubeLiveProbeFrame.addEventListener("error", () => setLiveTabVisibility(false));
-      window.addEventListener("message", handleYoutubeMessage);
 
       function signalAt(position, time) {
         if (analyser && !radioAudio.paused) {
@@ -1688,8 +1683,8 @@
       updateYoutubeTabSelection("videos");
       setLiveTabVisibility(false);
       setYoutubeMode("videos");
-      probeLiveFeedAvailability();
-      window.setInterval(probeLiveFeedAvailability, 120000);
+      checkLiveFeedAvailability();
+      window.setInterval(checkLiveFeedAvailability, LIVE_POLL_INTERVAL_MS);
 
       openSubmission.addEventListener("click", () => submissionDialog.showModal());
       closeSubmission.addEventListener("click", () => submissionDialog.close());
