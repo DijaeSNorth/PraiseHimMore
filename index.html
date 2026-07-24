@@ -1317,6 +1317,7 @@
       let radioFailed = false;
       let phase = 0;
       let fadeFrame;
+      let waveEnergyHistory = [];
       let preferredVolume = Number(volume.value);
       let activeYoutubeMode = "videos";
       let isLiveFeedAvailable = false;
@@ -1616,28 +1617,53 @@
             frequencyData.length - 1,
             Math.floor(position * frequencyData.length),
           );
-          const nearby = frequencyData[Math.max(0, index - 3)] || 0;
-          return Math.max(frequencyData[index], nearby) / 255;
+          const lowBand = Math.max(0, index - 10);
+          const highBand = Math.min(frequencyData.length - 1, index + 10);
+          let sum = 0;
+          let samples = 0;
+          for (let i = lowBand; i <= highBand; i += 1) {
+            sum += frequencyData[i] || 0;
+            samples += 1;
+          }
+          const smoothed = samples > 0 ? sum / samples : frequencyData[index] || 0;
+          const pulse = Math.abs(Math.sin(position * 3.2 + time * 0.0011)) * 0.22 + 0.78;
+          const drift = Math.abs(Math.sin(position * 22 + time * 0.0032)) * 0.11;
+          return ((smoothed / 255) * 0.9 + pulse * 0.08 + drift * 0.05);
         }
         return 0.12 + Math.abs(Math.sin(position * 15 + time * 0.0015)) * 0.08;
       }
 
       function drawWave() {
+        const t = performance.now();
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
         const center = height * 0.58;
-        const points = Math.max(120, Math.floor(width / 5));
+        const points = Math.max(160, Math.floor(width / 4));
+        const audioActive = analyser && !radioAudio.paused && frequencyData.length > 0;
+        const levelBand = analyser && !radioAudio.paused ? [...frequencyData].reduce((acc, item) => acc + item, 0) / frequencyData.length / 255 : 0.32;
+
+        waveEnergyHistory.push(levelBand);
+        if (waveEnergyHistory.length > 20) {
+          waveEnergyHistory.shift();
+        }
+
+        const energy = waveEnergyHistory.reduce((acc, value) => acc + value, 0) / waveEnergyHistory.length;
+        const pulse = Math.min(0.9, 0.2 + energy * 1.4 + preferredVolume * 0.4);
+        const pulseColor = Math.min(1, 0.4 + energy * 2 + preferredVolume * 0.5);
+
+        const spectrumPhase = t * 0.00028;
+        const jitter = Math.max(0.25, Math.min(1.05, 0.4 + pulse * 0.7));
         phase += reducedMotion.matches ? 0 : 0.014;
         ctx.clearRect(0, 0, width, height);
 
         const gradient = ctx.createLinearGradient(0, 0, width, 0);
-        gradient.addColorStop(0, "#c7d10d");
-        gradient.addColorStop(0.22, "#d6b631");
-        gradient.addColorStop(0.48, "#e52bcb");
-        gradient.addColorStop(0.72, "#7d48e8");
-        gradient.addColorStop(1, "#1678f2");
+        gradient.addColorStop(0, `rgba(199, 209, 13, ${0.55 + pulseColor * 0.4})`);
+        gradient.addColorStop(0.22, `rgba(214, 182, 49, ${0.54 + pulseColor * 0.42})`);
+        gradient.addColorStop(0.48, `rgba(229, 43, 203, ${0.66 + pulseColor * 0.3})`);
+        gradient.addColorStop(0.72, `rgba(125, 72, 232, ${0.58 + pulseColor * 0.36})`);
+        gradient.addColorStop(1, `rgba(22, 120, 242, ${0.5 + pulseColor * 0.45})`);
 
-        const renderLine = (blur, alpha, lineWidth) => {
+        const drawLayer = (blur, alpha, lineWidth, wobbleMultiplier) => {
           ctx.save();
           ctx.beginPath();
           ctx.strokeStyle = gradient;
@@ -1651,11 +1677,17 @@
             const position = i / points;
             const envelope = Math.sin(position * Math.PI) * 0.78 + 0.12;
             const signal = signalAt(position, performance.now());
-            const amplitude = (26 + signal * 112) * envelope;
+            const waveBase = 23 + signal * 138;
+            const driftOffset = Math.sin(position * 34 + phase * 0.8 + spectrumPhase * 3) * envelope * 5;
+            const motion = Math.sin(position * 18 + phase * 2.9 + spectrumPhase) * 3;
+            const amplitude = (waveBase * jitter + energy * 36 + driftOffset) * envelope;
             const y =
               center +
-              Math.sin(position * 26 + phase) * amplitude * 0.55 +
-              Math.sin(position * 61 - phase * 1.7) * amplitude * 0.18;
+              Math.sin(position * 26 + phase * 1.15) * amplitude * 0.58 * wobbleMultiplier +
+              Math.sin(position * 58 - phase * 1.7 + spectrumPhase) * amplitude * 0.17 * jitter +
+              Math.sin(position * 92 + phase * 0.85) * amplitude * 0.11 +
+              motion +
+              (audioActive ? drift * 4 : 0);
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           }
@@ -1663,9 +1695,11 @@
           ctx.restore();
         };
 
-        renderLine(28, 0.24, 12);
-        renderLine(12, 0.62, 3.2);
-        renderLine(0, 0.96, 1.25);
+        drawLayer(34, 0.20 + pulse * 0.05, 11, 1.05);
+        drawLayer(16, 0.58, 4.2, 0.96);
+        drawLayer(6, 0.78, 2.2, 0.9);
+        drawLayer(0, 0.96, 1.2, 0.82);
+        drawLayer(0, 0.28, 1.7, 1.07);
         requestAnimationFrame(drawWave);
       }
 
