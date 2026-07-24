@@ -1628,11 +1628,11 @@
           }
           const smoothed = samples > 0 ? sum / samples : frequencyData[index] || 0;
           const waveNoise =
-            Math.sin(position * 24 + waveShift * 1.8 + time * 0.0013) * 0.07 +
-            Math.sin(position * 7.1 - waveShift * 2.2 + time * 0.0007) * 0.04;
+            Math.sin(position * 10 + waveShift * 1.2 + time * 0.00095) * 0.06 +
+            Math.sin(position * 3.3 - waveShift * 0.9 + time * 0.00075) * 0.03;
           const shimmer =
-            Math.abs(Math.sin(position * 4.2 + time * 0.0011)) * 0.15 +
-            Math.abs(Math.sin(position * 19 - waveShift)) * 0.05;
+            Math.abs(Math.sin(position * 2.8 + time * 0.00095)) * 0.11 +
+            Math.abs(Math.sin(position * 1.6 - waveShift)) * 0.03;
           return Math.min(1, (smoothed / 255) * 1.02 + waveNoise + shimmer);
         }
         return 0.12 + Math.abs(Math.sin(position * 15 + time * 0.0015)) * 0.08;
@@ -1679,10 +1679,12 @@
         const pulseColor = Math.min(1, 0.42 + energy * 1.85 + preferredVolume * 0.5 + trebleBand * 0.18);
         const ribbonGlow = 0.5 + pulse * 0.5;
 
-        const spectrumPhase = t * 0.00028;
+        const spectrumPhase = t * 0.00022;
         const jitter = Math.max(0.22, Math.min(1.08, 0.45 + pulse * 0.68));
-        phase += reducedMotion.matches ? 0 : 0.014;
-        waveShift += reducedMotion.matches ? 0 : 0.003 + (audioActive ? energy * 0.008 : 0);
+        phase += reducedMotion.matches ? 0 : 0.006;
+        waveShift += reducedMotion.matches
+          ? 0
+          : 0.0014 + (audioActive ? energy * 0.0032 : 0);
         ctx.clearRect(0, 0, width, height);
 
         const gradient = ctx.createLinearGradient(0, 0, width, 0);
@@ -1707,18 +1709,18 @@
             const envelope = Math.sin(position * Math.PI) * 0.78 + 0.12;
             const signal = signalAt(position, t);
             const waveBase = 19 + signal * 128;
-            const driftOffset = Math.sin(position * 34 + phase * 0.8 + spectrumPhase * 3) * envelope * 4.5;
-            const organicPulse = Math.sin(position * 11 + phase * 1.3 + waveShift) * (0.8 + bassBand * 2.8);
-            const motion = Math.sin(position * 18 + phase * 2.9 + spectrumPhase) * (2.2 + trebleBand * 4);
-            const phaseTweak = Math.cos((position + phase) * 28 + bassBand * 12) * 1.8;
-            const noise = Math.sin(position * 37 - waveShift * 1.5 + bassBand * 4.4) * 2.2;
+            const driftOffset = Math.sin(position * 18 + phase * 0.72 + spectrumPhase * 2.6) * envelope * 3.2;
+            const organicPulse = Math.sin(position * 7.5 + phase * 0.9 + waveShift) * (0.72 + bassBand * 1.9);
+            const motion = Math.sin(position * 12 + phase * 1.45 + spectrumPhase) * (1.55 + trebleBand * 2.6);
+            const phaseTweak = Math.cos(position * 10 + phase * 0.5 + bassBand * 6) * 0.9;
+            const noise = Math.sin(position * 22 - waveShift * 1.2 + bassBand * 2.6) * 1.4;
             const amplitude = (waveBase * jitter + energy * 42 + driftOffset) * envelope;
             const y =
               center +
-              Math.sin(position * 26 + phase * 1.15) * amplitude * 0.54 * wobbleMultiplier +
-              Math.sin(position * 58 - phase * 1.72 + spectrumPhase) * amplitude * 0.16 * jitter +
-              Math.sin(position * 92 + phase * 0.85) * amplitude * 0.11 +
-              Math.sin(position * 140 + phase * 0.41 + waveShift) * Math.min(3.2, trebleBand * 8) * envelope +
+              Math.sin(position * 16 + phase * 0.95) * amplitude * 0.52 * wobbleMultiplier +
+              Math.sin(position * 30 - phase * 1.2 + spectrumPhase) * amplitude * 0.17 * jitter +
+              Math.sin(position * 58 + phase * 0.68) * amplitude * 0.09 +
+              Math.sin(position * 86 + phase * 0.34 + waveShift) * Math.min(2.2, trebleBand * 5.8) * envelope * 0.75 +
               noise * (1 + trebleBand) +
               motion +
               (audioActive ? organicPulse * 1.1 : 0) +
