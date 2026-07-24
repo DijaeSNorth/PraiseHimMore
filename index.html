@@ -553,6 +553,33 @@
         border: 0;
       }
 
+      .video-player-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        align-items: start;
+        gap: 14px;
+      }
+
+      .playlist-browser-frame {
+        width: 100%;
+        min-height: 390px;
+        border: 1px solid rgb(247 245 248 / 22%);
+        border-radius: 4px;
+        background: var(--charcoal);
+        box-shadow: 0 36px 90px rgb(0 0 0 / 46%);
+      }
+
+      .playlist-browser-frame iframe {
+        width: 100%;
+        height: 100%;
+        min-height: 390px;
+        border: 0;
+      }
+
+      .playlist-browser-frame.is-hidden {
+        display: none;
+      }
+
       .video-unavailable {
         position: absolute;
         inset: 0;
@@ -871,6 +898,18 @@
           grid-template-columns: 1fr 1fr;
         }
 
+        .video-player-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .playlist-browser-frame {
+          min-height: 320px;
+        }
+
+        .playlist-browser-frame iframe {
+          min-height: 320px;
+        }
+
         .live-link {
           justify-content: center;
         }
@@ -1025,23 +1064,34 @@
             </a>
           </div>
 
-          <div class="video-frame">
-            <iframe
-              id="youtubeFrame"
-              src="https://www.youtube-nocookie.com/embed/videoseries?list=UUmRXtIEIHqHUkGFxixH35qQ&controls=1&rel=0"
-              title="Praise Him More Videos"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen
-            ></iframe>
-            <div class="video-unavailable" id="videoUnavailable" hidden>
-              <h3>This video cannot be embedded here</h3>
-              <p>
-                Some owners disable embedding on external websites. Open this content
-                directly in YouTube when needed.
-              </p>
-              <a id="youtubeFallbackLink" class="live-link" href="#" target="_blank" rel="noreferrer">
-                Open in YouTube
-              </a>
+          <div class="video-player-layout">
+            <div class="video-frame">
+              <iframe
+                id="youtubeFrame"
+                src="https://www.youtube-nocookie.com/embed/videoseries?list=UUmRXtIEIHqHUkGFxixH35qQ&controls=1&rel=0"
+                title="Praise Him More Videos"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+              <div class="video-unavailable" id="videoUnavailable" hidden>
+                <h3>This video cannot be embedded here</h3>
+                <p>
+                  Some owners disable embedding on external websites. Open this channel
+                  directly on YouTube.
+                </p>
+                <a id="youtubeFallbackLink" class="live-link" href="#" target="_blank" rel="noreferrer">
+                  Open in YouTube
+                </a>
+              </div>
+            </div>
+            <div class="playlist-browser-frame" id="youtubePlaylistContainer" aria-label="YouTube playlist browser">
+              <iframe
+                id="youtubePlaylistFrame"
+                src="https://www.youtube.com/playlist?list=UUmRXtIEIHqHUkGFxixH35qQ"
+                title="Praise Him More playlist browser"
+                loading="lazy"
+                allowfullscreen
+              ></iframe>
             </div>
           </div>
           <p class="seek-note">
@@ -1054,7 +1104,7 @@
             target="_blank"
             rel="noreferrer"
           >
-            Open this view directly on YouTube
+            Open channel directly on YouTube
           </a>
 
           <section class="role-note" aria-labelledby="ourRoleTitle">
@@ -1195,8 +1245,12 @@
       const FADE_TRANSITION_MS = 3500;
       const CHANNEL_ID = "UCmRXtIEIHqHUkGFxixH35qQ";
       const UPLOADS_PLAYLIST = "UUmRXtIEIHqHUkGFxixH35qQ";
-      const YOUTUBE_LIVE_FALLBACK_URL = `https://www.youtube.com/channel/${CHANNEL_ID}/live`;
-      const YOUTUBE_VIDEOS_FALLBACK_URL = `https://www.youtube.com/playlist?list=${UPLOADS_PLAYLIST}`;
+      const YOUTUBE_CHANNEL_URL = `https://www.youtube.com/channel/${CHANNEL_ID}`;
+      const YOUTUBE_PLAYLIST_BROWSER_URL = `https://www.youtube.com/playlist?list=${UPLOADS_PLAYLIST}`;
+      const YOUTUBE_VIDEOS_EMBED_URL =
+        `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
+      const YOUTUBE_LIVE_EMBED_URL =
+        `https://www.youtube-nocookie.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0`;
       const radioToggle = document.getElementById("radioToggle");
       const radioAudio = document.getElementById("radioAudio");
       const playLabel = document.getElementById("playLabel");
@@ -1208,6 +1262,8 @@
       const canvas = document.getElementById("waveCanvas");
       const ctx = canvas.getContext("2d");
       const youtubeFrame = document.getElementById("youtubeFrame");
+      const youtubePlaylistFrame = document.getElementById("youtubePlaylistFrame");
+      const youtubePlaylistContainer = document.getElementById("youtubePlaylistContainer");
       const youtubeUnavailable = document.getElementById("videoUnavailable");
       const youtubeFallbackLink = document.getElementById("youtubeFallbackLink");
       const youtubeOpenInApp = document.getElementById("youtubeOpenInApp");
@@ -1256,6 +1312,7 @@
       let phase = 0;
       let fadeFrame;
       let preferredVolume = Number(volume.value);
+      let activeYoutubeMode = "videos";
 
       function setRadioState(state, message) {
         radioToggle.classList.toggle("is-playing", state === "playing");
@@ -1272,20 +1329,35 @@
       }
 
       function setYoutubeFallback(mode) {
-        const targetUrl =
-          mode === "live" ? YOUTUBE_LIVE_FALLBACK_URL : YOUTUBE_VIDEOS_FALLBACK_URL;
-        youtubeFallbackLink.href = targetUrl;
-        youtubeOpenInApp.href = targetUrl;
+        youtubeFallbackLink.href = YOUTUBE_CHANNEL_URL;
+        youtubeOpenInApp.href = YOUTUBE_CHANNEL_URL;
+        const fallbackTitle = mode === "live" ? "Open YouTube live page" : "Open YouTube channel";
+        youtubeOpenInApp.textContent = fallbackTitle;
+      }
+
+      function setYoutubeMode(mode) {
+        const isLive = mode === "live";
+        youtubeFrame.src = isLive ? YOUTUBE_LIVE_EMBED_URL : YOUTUBE_VIDEOS_EMBED_URL;
+        youtubeFrame.title = isLive
+          ? "Praise Him More YouTube livestream"
+          : "Praise Him More YouTube videos";
+        youtubePlaylistContainer.classList.toggle("is-hidden", isLive);
+        youtubePlaylistFrame.src = isLive ? "" : YOUTUBE_PLAYLIST_BROWSER_URL;
+        youtubePlaylistFrame.setAttribute("aria-hidden", String(isLive));
+        setYoutubeFallback(mode);
+        activeYoutubeMode = mode;
       }
 
       function showYoutubeFallback() {
         youtubeUnavailable.hidden = false;
         youtubeFrame.hidden = true;
+        youtubePlaylistContainer.classList.add("is-hidden");
       }
 
       function hideYoutubeFallback() {
         youtubeUnavailable.hidden = true;
         youtubeFrame.hidden = false;
+        youtubePlaylistContainer.classList.toggle("is-hidden", activeYoutubeMode === "live");
       }
 
       function connectAnalyser() {
@@ -1444,6 +1516,8 @@
 
       youtubeFrame.addEventListener("error", showYoutubeFallback);
       youtubeFrame.addEventListener("load", hideYoutubeFallback);
+      youtubePlaylistFrame.addEventListener("error", showYoutubeFallback);
+      youtubePlaylistFrame.addEventListener("load", hideYoutubeFallback);
 
       function signalAt(position, time) {
         if (analyser && !radioAudio.paused) {
@@ -1512,16 +1586,10 @@
             item.setAttribute("aria-selected", String(item === tab));
           });
           hideYoutubeFallback();
-          youtubeFrame.src =
-            mode === "live"
-              ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0`
-              : `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
-          youtubeFrame.title =
-            mode === "live" ? "Praise Him More YouTube livestream" : "Praise Him More Videos";
-          setYoutubeFallback(mode);
+          setYoutubeMode(mode);
         });
       });
-      setYoutubeFallback("videos");
+      setYoutubeMode("videos");
 
       openSubmission.addEventListener("click", () => submissionDialog.showModal());
       closeSubmission.addEventListener("click", () => submissionDialog.close());
