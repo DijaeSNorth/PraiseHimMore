@@ -1138,6 +1138,9 @@
 
     <script>
       const IS_GITHUB_PAGES = location.hostname.endsWith(".github.io");
+      const OFFICIAL_RADIO_PAGE = "https://waynetworktv.net/praisehimmore/?et_fb=1&pageSpeed=off";
+      const DEFAULT_GH_RADIO_STREAM_URL = "https://salttnetwork.com/proxy/l8dyv?mp=/stream";
+      const RADIO_STREAM_TIMEOUT_MS = 9000;
       const CHANNEL_ID = "UCmRXtIEIHqHUkGFxixH35qQ";
       const UPLOADS_PLAYLIST = "UUmRXtIEIHqHUkGFxixH35qQ";
       const radioToggle = document.getElementById("radioToggle");
@@ -1162,6 +1165,30 @@
       const musicFiles = document.getElementById("musicFiles");
       const formStatus = document.getElementById("formStatus");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const queryParams = new URLSearchParams(window.location.search);
+      const RADIO_STREAM_URL = queryParams.get("stream") || "";
+      const DEFAULT_STREAM_URL = RADIO_STREAM_URL || DEFAULT_GH_RADIO_STREAM_URL;
+
+      function sanitizeStreamUrl(value) {
+        try {
+          const candidate = new URL(value, window.location.origin);
+          if (candidate.protocol !== "https:" && candidate.protocol !== "http:") return "";
+          if (candidate.protocol === "http:" && location.protocol === "https:") return "";
+          return candidate.href;
+        } catch (_error) {
+          return "";
+        }
+      }
+
+      function getRadioStreamUrl() {
+        const streamOverride = sanitizeStreamUrl(RADIO_STREAM_URL);
+        return streamOverride || sanitizeStreamUrl(DEFAULT_STREAM_URL);
+      }
+
+      function openOfficialRadioPlayer() {
+        window.open(OFFICIAL_RADIO_PAGE, "_blank", "noopener,noreferrer");
+        setRadioState("error", "Inline stream is unavailable. Opening the official radio player.");
+      }
 
       let audioContext;
       let analyser;
@@ -1202,17 +1229,14 @@
       }
 
       async function playRadio() {
-        if (IS_GITHUB_PAGES) {
-          window.open(
-            "https://waynetworktv.net/praisehimmore/?et_fb=1&pageSpeed=off",
-            "_blank",
-            "noopener,noreferrer",
-          );
-          setRadioState(
-            "error",
-            "GitHub Pages test mode opened the official radio player.",
-          );
-          return;
+        const radioStreamUrl = getRadioStreamUrl();
+        const shouldRefreshSource = !radioAudio.src || !radioAudio.src.includes(radioStreamUrl);
+
+        if (shouldRefreshSource) {
+          radioAudio.pause();
+          radioAudio.removeAttribute("src");
+          radioAudio.load();
+          radioReady = false;
         }
         setRadioState("loading", "Connecting to the live station...");
         radioFailed = false;
@@ -1222,12 +1246,12 @@
           connectAnalyser();
           if (audioContext?.state === "suspended") await audioContext.resume();
           if (!radioReady) {
-            radioAudio.src = "/radio-stream";
+            radioAudio.src = IS_GITHUB_PAGES ? radioStreamUrl : "/radio-stream";
             radioReady = true;
           }
 
           const timeout = new Promise((_, reject) => {
-            window.setTimeout(() => reject(new Error("Station timed out")), 9000);
+            window.setTimeout(() => reject(new Error("Station timed out")), RADIO_STREAM_TIMEOUT_MS);
           });
 
           await Promise.race([radioAudio.play(), timeout]);
@@ -1238,6 +1262,10 @@
           radioAudio.removeAttribute("src");
           radioAudio.load();
           radioReady = false;
+          if (IS_GITHUB_PAGES) {
+            openOfficialRadioPlayer();
+            return;
+          }
           setRadioState(
             "error",
             "The station provider blocked inline playback. Use the official player.",
