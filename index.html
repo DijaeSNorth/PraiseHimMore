@@ -580,6 +580,16 @@
         display: none;
       }
 
+      .youtube-probe-frame {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0.01;
+        pointer-events: none;
+        border: 0;
+        left: -9999px;
+      }
+
       .video-unavailable {
         position: absolute;
         inset: 0;
@@ -1094,6 +1104,14 @@
               ></iframe>
             </div>
           </div>
+          <iframe
+            id="youtubeLiveProbeFrame"
+            class="youtube-probe-frame"
+            title="YouTube live probe"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            aria-hidden="true"
+          ></iframe>
           <p class="seek-note">
             <span></span>Drag the YouTube progress bar to seek through on-demand videos.
           </p>
@@ -1250,7 +1268,8 @@
       const YOUTUBE_VIDEOS_EMBED_URL =
         `https://www.youtube-nocookie.com/embed/videoseries?list=${UPLOADS_PLAYLIST}&controls=1&rel=0`;
       const YOUTUBE_LIVE_EMBED_URL =
-        `https://www.youtube-nocookie.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0`;
+        `https://www.youtube.com/embed/live_stream?channel=${CHANNEL_ID}&controls=1&rel=0&enablejsapi=1`;
+      const YOUTUBE_LIVE_PROBE_URL = `${YOUTUBE_LIVE_EMBED_URL}&autoplay=0&modestbranding=1&playsinline=1`;
       const radioToggle = document.getElementById("radioToggle");
       const radioAudio = document.getElementById("radioAudio");
       const playLabel = document.getElementById("playLabel");
@@ -1264,10 +1283,12 @@
       const youtubeFrame = document.getElementById("youtubeFrame");
       const youtubePlaylistFrame = document.getElementById("youtubePlaylistFrame");
       const youtubePlaylistContainer = document.getElementById("youtubePlaylistContainer");
+      const youtubeLiveProbeFrame = document.getElementById("youtubeLiveProbeFrame");
       const youtubeUnavailable = document.getElementById("videoUnavailable");
       const youtubeFallbackLink = document.getElementById("youtubeFallbackLink");
       const youtubeOpenInApp = document.getElementById("youtubeOpenInApp");
       const videoTabs = [...document.querySelectorAll(".video-tab")];
+      const liveTab = document.getElementById("liveTab");
       const submissionDialog = document.getElementById("submissionDialog");
       const openSubmission = document.getElementById("openSubmission");
       const closeSubmission = document.getElementById("closeSubmission");
@@ -1313,6 +1334,8 @@
       let fadeFrame;
       let preferredVolume = Number(volume.value);
       let activeYoutubeMode = "videos";
+      let isLiveFeedAvailable = false;
+      let liveProbeTimeout = null;
 
       function setRadioState(state, message) {
         radioToggle.classList.toggle("is-playing", state === "playing");
@@ -1337,6 +1360,7 @@
 
       function setYoutubeMode(mode) {
         const isLive = mode === "live";
+        if (isLive && !isLiveFeedAvailable) return;
         youtubeFrame.src = isLive ? YOUTUBE_LIVE_EMBED_URL : YOUTUBE_VIDEOS_EMBED_URL;
         youtubeFrame.title = isLive
           ? "Praise Him More YouTube livestream"
@@ -1346,6 +1370,68 @@
         youtubePlaylistFrame.setAttribute("aria-hidden", String(isLive));
         setYoutubeFallback(mode);
         activeYoutubeMode = mode;
+      }
+
+      function setLiveTabVisibility(isAvailable) {
+        isLiveFeedAvailable = isAvailable;
+        liveTab.hidden = !isAvailable;
+      }
+
+      function updateYoutubeTabSelection(mode) {
+        videoTabs.forEach((item) => {
+          item.setAttribute("aria-selected", String(item.dataset.mode === mode));
+        });
+      }
+
+      function keepTabSelectionSafe() {
+        if (activeYoutubeMode === "live" && !isLiveFeedAvailable) {
+          updateYoutubeTabSelection("videos");
+          setYoutubeMode("videos");
+        }
+      }
+
+      function handleYoutubeMessage(event) {
+        const allowedOrigins = [
+          "https://www.youtube.com",
+          "https://www.youtube-nocookie.com",
+          "http://www.youtube.com",
+          "http://www.youtube-nocookie.com",
+        ];
+        if (!allowedOrigins.includes(event.origin)) return;
+
+        let payload = event.data;
+        if (typeof payload === "string") {
+          try {
+            payload = JSON.parse(payload);
+          } catch {
+            return;
+          }
+        }
+
+        if (!payload || typeof payload !== "object") return;
+        if (payload.id !== "youtubeLiveProbeFrame") return;
+
+        if (payload.event === "onError") {
+          setLiveTabVisibility(false);
+          keepTabSelectionSafe();
+          return;
+        }
+
+        if (payload.event === "onReady") {
+          setLiveTabVisibility(true);
+          keepTabSelectionSafe();
+        }
+      }
+
+      function probeLiveFeedAvailability() {
+        if (!youtubeLiveProbeFrame) return;
+        youtubeLiveProbeFrame.src = YOUTUBE_LIVE_PROBE_URL;
+        if (liveProbeTimeout) clearTimeout(liveProbeTimeout);
+        liveProbeTimeout = window.setTimeout(() => {
+          if (!isLiveFeedAvailable) {
+            setLiveTabVisibility(false);
+          }
+        }, 7000);
       }
 
       function showYoutubeFallback() {
@@ -1518,6 +1604,15 @@
       youtubeFrame.addEventListener("load", hideYoutubeFallback);
       youtubePlaylistFrame.addEventListener("error", showYoutubeFallback);
       youtubePlaylistFrame.addEventListener("load", hideYoutubeFallback);
+      youtubeLiveProbeFrame.addEventListener("load", () => {
+        setLiveTabVisibility(true);
+        if (liveProbeTimeout) {
+          window.clearTimeout(liveProbeTimeout);
+          liveProbeTimeout = null;
+        }
+      });
+      youtubeLiveProbeFrame.addEventListener("error", () => setLiveTabVisibility(false));
+      window.addEventListener("message", handleYoutubeMessage);
 
       function signalAt(position, time) {
         if (analyser && !radioAudio.paused) {
@@ -1582,14 +1677,19 @@
       videoTabs.forEach((tab) => {
         tab.addEventListener("click", () => {
           const mode = tab.dataset.mode;
-          videoTabs.forEach((item) => {
-            item.setAttribute("aria-selected", String(item === tab));
-          });
+          if (mode === "live" && !isLiveFeedAvailable) {
+            return;
+          }
+          updateYoutubeTabSelection(mode);
           hideYoutubeFallback();
           setYoutubeMode(mode);
         });
       });
+      updateYoutubeTabSelection("videos");
+      setLiveTabVisibility(false);
       setYoutubeMode("videos");
+      probeLiveFeedAvailability();
+      window.setInterval(probeLiveFeedAvailability, 120000);
 
       openSubmission.addEventListener("click", () => submissionDialog.showModal());
       closeSubmission.addEventListener("click", () => submissionDialog.close());
